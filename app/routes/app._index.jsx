@@ -1,6 +1,7 @@
 import { useLoaderData } from "react-router";
 import { Page, Card, Button, Text } from "@shopify/polaris";
-import { getMagnetOrders } from "./api.magnet-orders";
+import { getMagnetOrders } from "../services/magnet-orders.server";
+
 
 const WORKER = "https://magnet-upload.kendinehasyazilimci.workers.dev";
 

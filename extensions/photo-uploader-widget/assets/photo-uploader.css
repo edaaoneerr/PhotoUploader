@@ -1,0 +1,727 @@
+/* ---------- ANA SAYFA BUTONU ---------- */
+.photo-uploader-widget {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.photo-uploader-button {
+  background: #f74551;
+  color: #fff;
+  padding: 14px 40px;
+  border-radius: 9999px;
+  border: none;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  font-size: 13px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.photo-uploader-button:hover {
+  opacity: 0.9;
+}
+
+/* ---------- FULLSCREEN MODAL – UPLOADER ---------- */
+.photo-uploader-modal,
+.photo-preview-modal {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #ffffff;
+  z-index: 9999;
+  display: none;
+}
+
+.photo-uploader-modal.is-open,
+.photo-preview-modal.is-open {
+  display: block;
+}
+
+/* Body kilitle, header sakla */
+body.photo-uploader-modal-open {
+  overflow: hidden;
+}
+body.photo-uploader-modal-open .shopify-section-header,
+body.photo-uploader-modal-open header {
+  display: none !important;
+}
+
+/* ---------- UPLOADER LAYOUT (sidebar / main / preview) ---------- */
+.photo-uploader-modal__inner {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 760px;
+  grid-template-rows: 48px minmax(0, 1fr);
+  grid-template-areas:
+    "sidebar header header"
+    "sidebar main   preview";
+  font-size: 13px;
+}
+
+/* Close */
+.photo-uploader-modal__close,
+.photo-preview-modal__close {
+  grid-area: header;
+  align-self: center;
+  justify-self: flex-end;
+  margin-right: 5px;
+  background: #f74551;
+  color: #fff;
+  border-radius: 999px;
+  border: none;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Sidebar */
+.photo-uploader-sidebar {
+  grid-area: sidebar;
+  border-right: 1px solid #f0f0f0;
+  padding: 20px 14px;
+}
+
+.photo-uploader-sidebar__title {
+  font-weight: 600;
+  margin-bottom: 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.photo-uploader-source-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.photo-uploader-source-item {
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.photo-uploader-source-item.is-active {
+  background: #ffe5e8;
+  color: #f74551;
+  font-weight: 600;
+}
+
+/* Main dropzone */
+.photo-uploader-main {
+  grid-area: main;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-uploader-dropzone {
+  width: 540px;
+  height: 320px;
+  border-radius: 12px;
+  border: 1px dashed #d9d9d9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 34px;
+}
+
+.photo-uploader-dropzone__title {
+  font-size: 22px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.photo-uploader-dropzone__subtitle {
+  font-size: 17px;
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.photo-uploader-dropzone__or {
+  font-size: 11px;
+  margin: 8px 0;
+  color: #999;
+}
+
+.photo-uploader-dropzone__button {
+  background: #f74551;
+  color: #fff;
+  padding: 12px 40px;
+  border-radius: 9999px;
+  border: none;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.photo-uploader-dropzone.is-dragover {
+  background: #fff5f6;
+  border-color: #f74551;
+}
+
+/* Sağ önizleme paneli */
+.photo-uploader-preview {
+  grid-area: preview;
+  border-left: 1px solid #f0f0f0;
+  padding: 18px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.photo-uploader-preview__title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Selection grid – 3 kolon */
+.photo-uploader-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+  overflow-y: auto;
+  align-content: flex-start;
+}
+
+.photo-uploader-item {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #000;
+}
+
+.photo-uploader-item img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+/* Edit / delete (hover’da görünür) */
+.photo-uploader-actions,
+.photo-preview-actions {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.photo-uploader-item:hover .photo-uploader-actions,
+.photo-preview-item:hover .photo-preview-actions {
+  opacity: 1;
+}
+
+.photo-uploader-icon-btn,
+.photo-preview-icon-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: #f74551;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.photo-uploader-icon,
+.photo-preview-icon {
+  width: 13px;
+  height: 13px;
+  fill: #ffffff;
+  pointer-events: none;
+}
+
+/* Footer + Preview Selection buton */
+.photo-uploader-footer {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 10px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.photo-uploader-footer__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.photo-uploader-footer__count {
+  color: #555;
+}
+
+.photo-uploader-footer__cta {
+  background: #e0e0e0;
+  color: #666;
+  padding: 9px 24px;
+  border-radius: 999px;
+  border: none;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* “Preview selection” */
+.photo-uploader-footer__preview-btn {
+  width: 100%;
+  border-radius: 999px;
+  border: none;
+  padding: 10px 24px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  background: #d3d3d3;
+  color: #777;
+  cursor: not-allowed;
+}
+
+.photo-uploader-footer__preview-btn.is-active {
+  background: #f74551;
+  color: #fff;
+  cursor: pointer;
+}
+
+.photo-uploader-footer__preview-btn.is-active:hover {
+  opacity: 0.9;
+}
+
+/* Limit mesajı (alert değil ufak not) */
+.photo-uploader-limit-note {
+  font-size: 11px;
+  color: #c33;
+}
+
+/* ---------- PREVIEW SELECTION MODAL ---------- */
+.photo-preview-modal__inner {
+  width: 100%;
+  height: 100%;
+  padding: 32px 40px 32px 40px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(280px, 360px);
+  column-gap: 48px;
+  row-gap: 24px;
+}
+
+.photo-preview-modal__close {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+}
+
+.photo-preview-grid-wrap {
+  align-self: center;
+  justify-self: center;
+  max-width: 720px;
+  width: 100%;
+}
+
+.photo-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.photo-preview-item {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #000;
+}
+
+.photo-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* DOTTED SAFE AREA */
+.photo-preview-item::before {
+  content: "";
+  position: absolute;
+  inset: 5%;
+  border: 2px dotted rgba(255,255,255,0.9);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.3);
+  pointer-events: none;
+}
+
+/* Sağ panel */
+.photo-preview-sidebar {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.photo-preview-title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.photo-preview-sub {
+  font-size: 11px;
+  color: #777;
+}
+
+/* Legend */
+.photo-preview-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.photo-preview-legend-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.photo-preview-legend-swatch {
+  width: 38px;
+  height: 38px;
+  background-image: linear-gradient(45deg, #f74551 25%, transparent 25%, transparent 50%, #f74551 50%, #f74551 75%, transparent 75%, transparent);
+  background-size: 6px 6px;
+  border-radius: 4px;
+}
+
+/* Selected / button */
+.photo-preview-selected-count {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.photo-preview-add-btn {
+  margin-top: 10px;
+  align-self: flex-start;
+  background: #f74551;
+  color: #fff;
+  padding: 11px 34px;
+  border-radius: 999px;
+  border: none;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* ---------- CROP OVERLAY ---------- */
+.photo-cropper {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-cropper.is-open {
+  display: flex;
+}
+
+.photo-cropper__dialog {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 24px 18px;
+  max-width: 820px;
+  width: 100%;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+}
+
+.photo-cropper__title {
+  font-size: 17px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.photo-cropper__frame {
+  position: relative;
+  max-height: 70vh;
+  height: 70vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.photo-cropper__image {
+  display: block;
+  width: auto !important;
+  height: auto !important;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  margin: 0 auto;
+}
+
+/* Overlay + square */
+.photo-cropper__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.photo-cropper__crop {
+  position: absolute;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+  box-sizing: border-box;
+  pointer-events: auto;
+  cursor: move;
+}
+
+/* Handles */
+.photo-cropper__handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: #f74551;
+  box-sizing: border-box;
+}
+
+.photo-cropper__handle--tl { top: -8px; left: -8px; cursor: nwse-resize; }
+.photo-cropper__handle--tr { top: -8px; right: -8px; cursor: nesw-resize; }
+.photo-cropper__handle--bl { bottom: -8px; left: -8px; cursor: nesw-resize; }
+.photo-cropper__handle--br { bottom: -8px; right: -8px; cursor: nwse-resize; }
+
+.photo-cropper__hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #777;
+  text-align: center;
+}
+
+.photo-cropper__buttons {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.photo-cropper-btn {
+  border-radius: 999px;
+  border: none;
+  padding: 7px 18px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.photo-cropper-btn--secondary {
+  background: #f3f3f3;
+  color: #333;
+}
+
+.photo-cropper-btn--primary {
+  background: #f74551;
+  color: #fff;
+}
+/* --- PREVIEW LIST META (desktop'ta gizli, mobile'de açılacak) --- */
+.photo-preview-block-header,
+.photo-preview-block-footer {
+  display: none; /* desktop default: hiç görünmez */
+}
+
+.photo-preview-index {
+  font-size: 13px;
+}
+
+.photo-preview-status {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f74551; /* Preview butonu rengiyle aynı */
+}
+
+/* Edit / Delete text link stili (buton değil) */
+.photo-preview-text-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  color: #333;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Preview modal scroll + close konumu */
+.photo-preview-modal {
+  overflow-y: auto;   /* 4-5-6.. için kaydırma */
+}
+
+.photo-preview-modal__inner {
+  min-height: 100%;
+}
+
+/* close biraz daha sağda dursun */
+.photo-preview-modal__close {
+  right: 16px;  /* 24'tü, biraz sağa yaklaştırdık */
+}
+
+  .photo-preview-mobile-info {
+    display: none;
+  }
+
+/* ---------- RESPONSIVE (MOBILE) ---------- */
+@media (max-width: 900px) {
+  /* UPLOADER: header / main / preview  */
+  .photo-uploader-modal__inner {
+    grid-template-columns: 1fr;
+    grid-template-rows: 48px 1fr auto;
+    grid-template-areas:
+      "header"
+      "main"
+      "preview";
+  }
+
+  /* Sidebar gizli */
+  .photo-uploader-sidebar {
+    display: none !important;
+  }
+
+  /* MAIN: upload butonu tam ortada */
+  .photo-uploader-main {
+    grid-area: main;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0 16px;
+  }
+
+  .photo-uploader-dropzone {
+    border: none !important;
+    padding: 0 !important;
+    width: 100%;
+    max-width: 360px;
+    height: auto !important;
+    display: flex;
+    justify-content: center;
+  }
+
+  .photo-uploader-dropzone__title,
+  .photo-uploader-dropzone__subtitle,
+  .photo-uploader-dropzone__or {
+    display: none !important;
+  }
+
+  .photo-uploader-dropzone__button {
+    display: block !important;
+    margin: 0 auto !important;
+  }
+
+  /* Sağ preview panel: sadece footer */
+  .photo-uploader-preview {
+    grid-area: preview;
+    border-left: none;
+    border-top: 1px solid #f0f0f0;
+    padding: 12px 16px 16px;
+  }
+
+  .photo-uploader-preview__title,
+  .photo-uploader-grid {
+    display: none !important;
+  }
+
+  /* --- PREVIEW SELECTION MODAL – MOBILE GÖRÜNÜM --- */
+  .photo-preview-modal__inner {
+    display: block;
+    padding: 24px 16px 24px;
+  }
+
+  /* Üstteki yazı + legend (yeni blok) */
+  .photo-preview-mobile-info {
+    display: block;
+    max-width: 360px;
+    margin: 0 auto 12px;  /* yazı ile ilk foto arası boşluk az */
+  }
+
+  /* Sidebar içindeki başlık + legend mobilde gereksiz -> gizle */
+  .photo-preview-sidebar .photo-preview-title,
+  .photo-preview-sidebar .photo-preview-sub,
+  .photo-preview-sidebar .photo-preview-legend {
+    display: none;
+  }
+
+  /* Fotoğraf listesi */
+  .photo-preview-grid-wrap {
+    max-width: 100%;
+    width: 100%;
+    margin: 0 auto 16px;   /* grid ile alttaki buton arası boşluk */
+  }
+
+  .photo-preview-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .photo-preview-item {
+    max-width: 360px;
+    margin: 4px auto 4px;
+  }
+
+  /* 1/9 + Cropped başlık satırı */
+  .photo-preview-block-header,
+  .photo-preview-block-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 360px;
+    margin: 0 auto;
+    font-size: 13px;
+  }
+
+  .photo-preview-block-header {
+    margin-top: 6px;
+  }
+
+  .photo-preview-block-footer {
+    margin-top: 6px;
+  }
+
+  /* ÖNEMLİ: 1/9 tekrar görünsün diye hiçbir yerde display:none YOK */
+
+  /* Hover ikonlarını mobilde gizle */
+  .photo-preview-actions {
+    display: none !important;
+  }
+
+  /* Selected 9/9 mobilde gerek yok */
+  .photo-preview-selected-count {
+    display: none;
+  }
+
+  /* ADD TO CART – en altta, ortaya, aradaki boşluk azaltılmış */
+  .photo-preview-add-btn {
+    display: block;
+    width: 100%;
+    max-width: 360px;
+    margin: 16px auto 32px;
+  }
+}
