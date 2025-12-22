@@ -1,4 +1,14 @@
-(function() {
+(function () {
+  if (!document.querySelector('[data-photo-uploader]')) {
+    return;
+  }
+
+  if (window.__PHOTO_UPLOADER_INITIALIZED__) {
+    return;
+  }
+  window.__PHOTO_UPLOADER_INITIALIZED__ = true;
+
+  console.log('Photo uploader initialized ONCE on product page');
   const MAX_PHOTOS = 9;
 
   let currentWidget = null;
@@ -849,7 +859,8 @@ function loadImage(url) {
   });
 }
 
-
+if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
+  window.__PHOTO_UPLOADER_ADD_HANDLER__ = true;
   /* ---- ADD TO CART: DELEGATED CLICK HANDLER ---- */
     document.addEventListener('click', async (event) => {
     const btn = event.target.closest('[data-add-to-cart]');
@@ -873,6 +884,16 @@ function loadImage(url) {
       // 2) Fotoğrafları IndexedDB'ye kaydet (cart sayfasında göstermek için)
       // Cloudflare'a sadece sipariş verildiğinde yüklenecek
       await savePhotosToIndexedDB(uploadKey, photos);
+
+      // 1) FOTOĞRAFLARI CLOUDFLARE'A UPLOAD ET
+      await fetch('/api/upload-photos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: uploadKey,
+          photos: photos.map(p => p.croppedSrc)
+        })
+      });
 
       // 3. Composite üret
       const compositeImage = await buildCompositePreview();
@@ -918,5 +939,5 @@ function loadImage(url) {
       console.error('Add to cart network error', err);
       alert('Bir hata oluştu, lütfen tekrar deneyin.');
     }
-  });
+  });}
 })();
