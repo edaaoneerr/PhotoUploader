@@ -1,4 +1,4 @@
-import { json } from "@remix-run/node";
+import { json } from "@react-router/node";
 
 const WORKER = "https://magnet-upload.kendinehasyazilimci.workers.dev";
 
