@@ -1,6 +1,3 @@
-import { json } from "@react-router/node";
-
-
 const WORKER = "https://magnet-upload.kendinehasyazilimci.workers.dev";
 
 export async function action({ request }) {
@@ -24,17 +21,16 @@ export async function action({ request }) {
 
     if (!magnetKey) {
       console.log("ℹ️ No magnet key, skipping upload");
-      return json({ skipped: true });
+      return Response.json({ skipped: true });
     }
 
-    // Fotoğraflar nereden gelecek?
-    // 👉 Order öncesi sen backend’e cache’liyorsun
-    // 👉 Şimdilik mock payload gösteriyorum
-
+    // ⚠️ BURADA SADECE ÖRNEK
+    // Bu fonksiyon SENİN backend cache'inden gelecek
     const photos = await getPhotosForKey(magnetKey);
-    if (!photos.length) {
+
+    if (!photos || !photos.length) {
       console.warn("⚠️ No photos found for key:", magnetKey);
-      return json({ error: "No photos" }, { status: 400 });
+      return Response.json({ error: "No photos" }, { status: 400 });
     }
 
     const res = await fetch(WORKER + "/upload", {
@@ -50,9 +46,12 @@ export async function action({ request }) {
       throw new Error("Worker upload failed");
     }
 
-    return json({ ok: true });
+    return Response.json({ ok: true });
   } catch (err) {
     console.error("❌ WEBHOOK ERROR:", err);
-    return json({ error: err.message }, { status: 500 });
+    return Response.json(
+      { error: err.message },
+      { status: 500 }
+    );
   }
 }
