@@ -13,29 +13,6 @@ app.use((req, res, next) => {
 });
 
 
-app.use(express.json({ limit: "50mb" }));
-
-app.post("/api/stash-photos", async (req, res) => {
-  try {
-    const { key, photos } = req.body;
-
-    if (!key || !photos || !photos.length) {
-      return res.status(400).json({ error: "invalid payload" });
-    }
-
-    console.log("📦 STASH PHOTOS:", key, photos.length);
-
-    // ŞİMDİLİK RAM'DE TUTACAĞIZ (birazdan DB'ye alacağız)
-    global.__PHOTO_STASH__ ??= {};
-    global.__PHOTO_STASH__[key] = photos;
-
-    res.json({ ok: true });
-  } catch (err) {
-    console.error("❌ STASH ERROR", err);
-    res.status(500).json({ error: "stash failed" });
-  }
-});
-
 app.use("/webhooks/orders-paid", express.json());
 
 app.post("/webhooks/orders-paid", async (req, res) => {
@@ -61,14 +38,16 @@ app.post("/webhooks/orders-paid", async (req, res) => {
 
     console.log("🧲 magnet_upload_key:", uploadKey);
 
-    const photos = global.__PHOTO_STASH__?.[uploadKey];
 
-    if (!photos) {
-      console.error("❌ Photos not found for", uploadKey);
-      return res.status(200).send("no photos");
-    }
+    await fetch("https://magnet-upload.kendinehasyazilimci.workers.dev/finalize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            key: uploadKey,
+            orderId: order.id
+        })
+        });
 
-    console.log("🖼 Photos ready:", photos.length);
 
     res.status(200).send("ok");
 

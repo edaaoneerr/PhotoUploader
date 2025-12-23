@@ -880,15 +880,18 @@ if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
     try {
       // 1) Bu sipariş için benzersiz bir anahtar üret
       const uploadKey = generateUploadKey();
-      
-      await fetch('https://photouploader-hhwx.onrender.com/api/stash-photos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+
+      for (let i = 0; i < photos.length; i++) {
+      await fetch("https://magnet-upload.kendinehasyazilimci.workers.dev/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           key: uploadKey,
-          photos: photos.map(p => p.croppedSrc)
+          index: i,
+          dataUrl: photos[i].croppedSrc
         })
       });
+    }
 
       // 2) Fotoğrafları IndexedDB'ye kaydet (cart sayfasında göstermek için)
       // Cloudflare'a sadece sipariş verildiğinde yüklenecek
