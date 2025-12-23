@@ -61,8 +61,17 @@ app.post("/webhooks/orders-paid", async (req, res) => {
 
     console.log("🧲 magnet_upload_key:", uploadKey);
 
-    // DEVAM EDECEĞİZ
+    const photos = global.__PHOTO_STASH__?.[uploadKey];
+
+    if (!photos) {
+      console.error("❌ Photos not found for", uploadKey);
+      return res.status(200).send("no photos");
+    }
+
+    console.log("🖼 Photos ready:", photos.length);
+
     res.status(200).send("ok");
+
   } catch (err) {
     console.error("❌ Webhook error", err);
     res.status(500).send("error");
