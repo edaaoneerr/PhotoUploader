@@ -19,7 +19,7 @@ export async function action({ request }) {
         photos
       })
     });
-
+    console.log("🔥 ORDER PAID WEBHOOK HIT"); 
     if (!res.ok) {
       throw new Error("Worker upload failed");
     }
