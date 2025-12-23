@@ -257,12 +257,6 @@
   function openPreviewModal() {
     uploaderModal.classList.remove('is-open');
     previewModal.classList.add('is-open');
-
-    const btn = previewModal.querySelector('[data-add-to-cart]');
-    if (!btn.__BOUND__) {
-      btn.__BOUND__ = true;
-      btn.addEventListener('click', handleAddToCart);
-    }
   }
 
 
@@ -920,32 +914,6 @@ if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
       // 4. Global değişkene ata
       window.compositeImage = compositeImage;
 
-
-      async function handleAddToCart() {
-        console.log("ADD TO CART CLICKED – REAL");
-
-        const uploadKey = generateUploadKey();
-
-        for (let i = 0; i < photos.length; i++) {
-          const res = await fetch(
-            "https://magnet-upload.kendinehasyazilimci.workers.dev/upload",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                key: uploadKey,
-                index: i,
-                dataUrl: photos[i].croppedSrc
-              })
-            }
-          );
-
-          const text = await res.text();
-          console.log("UPLOAD RESULT", i, res.status, text);
-
-          if (!res.ok) throw new Error("Upload failed");
-        }
-        }
       // 3) Shopify'a sadece küçük bir ID gönder
       // Cart API properties'i object formatında bekler, siparişe geçtiğinde array'e dönüşür
       const response = await fetch('/cart/add.js', {
@@ -973,7 +941,7 @@ if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
         return;
       }
 
-      window.location.href = '/cart';
+      //window.location.href = '/cart';
     } catch (err) {
       console.error('Add to cart network error', err);
       alert('Bir hata oluştu, lütfen tekrar deneyin.');
