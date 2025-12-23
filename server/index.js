@@ -14,12 +14,37 @@ app.use((req, res, next) => {
 
 app.use("/webhooks/orders-paid", express.json());
 
-app.post("/webhooks/orders-paid", (req, res) => {
-  console.log("🟢 ORDERS PAID WEBHOOK RECEIVED");
-  console.log("Order ID:", req.body?.id);
+app.post("/webhooks/orders-paid", async (req, res) => {
+  try {
+    const order = req.body;
 
-  res.status(200).send("ok");
+    console.log("🟢 ORDER PAID:", order.id);
+
+    let uploadKey = null;
+
+    for (const item of order.line_items || []) {
+      for (const prop of item.properties || []) {
+        if (prop.name === "magnet_upload_key") {
+          uploadKey = prop.value;
+        }
+      }
+    }
+
+    if (!uploadKey) {
+      console.warn("⚠️ magnet_upload_key bulunamadı");
+      return res.status(200).send("no magnet key");
+    }
+
+    console.log("🧲 magnet_upload_key:", uploadKey);
+
+    // DEVAM EDECEĞİZ
+    res.status(200).send("ok");
+  } catch (err) {
+    console.error("❌ Webhook error", err);
+    res.status(500).send("error");
+  }
 });
+
 
 /* -------------------- */
 /* REACT ROUTER HANDLER */
