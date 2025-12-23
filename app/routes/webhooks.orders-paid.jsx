@@ -1,10 +1,10 @@
-export async function action({ request }) {
-  try {
-    const payload = await request.json();
-    console.log("ORDERs PAID", payload.id);
-    return new Response("ok", { status: 200 });
-  } catch (e) {
-    console.error(e);
-    return new Response("error", { status: 500 });
-  }
+
+const photos = global.__PHOTO_STASH__?.[uploadKey];
+
+if (!photos) {
+  console.error("❌ Photos not found for", uploadKey);
+  return res.status(200).send("no photos");
 }
+
+console.log("🖼 Photos ready:", photos.length);
+
