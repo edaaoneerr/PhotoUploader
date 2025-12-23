@@ -886,15 +886,21 @@ if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
       await savePhotosToIndexedDB(uploadKey, photos);
 
       // 1) FOTOĞRAFLARI CLOUDFLARE'A UPLOAD ET
-      await fetch('/api/upload-photos', {
+      const uploadRes = await fetch('/api/upload-photos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           key: uploadKey,
-          photos: photos.map(p => p.croppedSrc)
+          photos: photos.map(p => ({
+            dataUrl: p.croppedSrc
+          }))
         })
       });
 
+      if (!uploadRes.ok) {
+        console.log(uploadRes)
+        throw new Error('Upload failed');
+      }
       // 3. Composite üret
       const compositeImage = await buildCompositePreview();
 
