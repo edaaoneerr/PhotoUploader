@@ -885,22 +885,6 @@ if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
       // Cloudflare'a sadece sipariş verildiğinde yüklenecek
       await savePhotosToIndexedDB(uploadKey, photos);
 
-      // 1) FOTOĞRAFLARI CLOUDFLARE'A UPLOAD ET
-      const uploadRes = await fetch('/api/upload-photos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          key: uploadKey,
-          photos: photos.map(p => ({
-            dataUrl: p.croppedSrc
-          }))
-        })
-      });
-
-      if (!uploadRes.ok) {
-        console.log(uploadRes)
-        throw new Error('Upload failed');
-      }
       // 3. Composite üret
       const compositeImage = await buildCompositePreview();
 
@@ -909,9 +893,6 @@ if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
 
       // 4. Global değişkene ata
       window.compositeImage = compositeImage;
-
-
-
 
       // 3) Shopify'a sadece küçük bir ID gönder
       // Cart API properties'i object formatında bekler, siparişe geçtiğinde array'e dönüşür
