@@ -39,7 +39,7 @@ app.post("/webhooks/orders-paid", async (req, res) => {
     console.log("🧲 magnet_upload_key:", uploadKey);
 
 
-    await fetch("https://magnet-upload.kendinehasyazilimci.workers.dev/finalize", {
+    const res =  await fetch("https://magnet-upload.kendinehasyazilimci.workers.dev/finalize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -48,6 +48,12 @@ app.post("/webhooks/orders-paid", async (req, res) => {
         })
         });
 
+    const text = await res.text();
+    console.log("UPLOAD RESULT", i, res.status, text);
+
+    if (!res.ok) {
+        throw new Error("Upload failed at index " + i);
+    }
 
     res.status(200).send("ok");
 

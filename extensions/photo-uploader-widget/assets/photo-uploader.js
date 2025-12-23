@@ -882,25 +882,32 @@ if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
       const uploadKey = generateUploadKey();
 
       for (let i = 0; i < photos.length; i++) {
-      await fetch("https://magnet-upload.kendinehasyazilimci.workers.dev/upload", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          key: uploadKey,
-          index: i,
-          dataUrl: photos[i].croppedSrc
-        })
-      });
+        const res = await fetch("https://magnet-upload.kendinehasyazilimci.workers.dev/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            key: uploadKey,
+            index: i,
+            dataUrl: photos[i].croppedSrc
+          })
+        });
+
+        const text = await res.text();
+        console.log("UPLOAD RESULT", i, res.status, text);
+
+        if (!res.ok) {
+          throw new Error("Upload failed at index " + i);
+        }
+
     }
 
       // 2) Fotoğrafları IndexedDB'ye kaydet (cart sayfasında göstermek için)
-      // Cloudflare'a sadece sipariş verildiğinde yüklenecek
       await savePhotosToIndexedDB(uploadKey, photos);
 
       // 3. Composite üret
       const compositeImage = await buildCompositePreview();
 
-            // 5. Ürün preview fotoğrafını değiştir (Shopify product page)
+     // 5. Ürün preview fotoğrafını değiştir (Shopify product page)
       replaceProductImageWithComposite(compositeImage);
 
       // 4. Global değişkene ata
