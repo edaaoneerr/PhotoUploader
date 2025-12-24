@@ -1,20 +1,17 @@
 (function () {
 
-   // 🛑 SHOPIFY CART FORM KILL SWITCH
-  document.addEventListener(
-    "submit",
-    (e) => {
-      const form = e.target;
-      if (form?.action?.includes("/cart/add")) {
-        console.log("🛑 SHOPIFY FORM SUBMIT BLOCKED");
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        return false;
+      // 🧪 FETCH INTERCEPT TEST
+    const originalFetch = window.fetch;
+
+    window.fetch = async function (...args) {
+      if (typeof args[0] === "string" && args[0].includes("/cart/add")) {
+        console.log("🛑 CART ADD FETCH BLOCKED", args);
+        throw new Error("CART BLOCKED FOR TEST");
       }
-    },
-    true
-  );
-  
+      return originalFetch.apply(this, args);
+    };
+
+
   if (!document.querySelector('[data-photo-uploader]')) {
     return;
   }
