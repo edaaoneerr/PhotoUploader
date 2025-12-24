@@ -935,6 +935,8 @@ if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
         })
       });
 
+      window.location.href = '/cart';
+      
       let data = null;
       try {
         data = await response.json();
