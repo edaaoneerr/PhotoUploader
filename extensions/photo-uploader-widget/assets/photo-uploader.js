@@ -1,4 +1,20 @@
 (function () {
+
+   // 🛑 SHOPIFY CART FORM KILL SWITCH
+  document.addEventListener(
+    "submit",
+    (e) => {
+      const form = e.target;
+      if (form?.action?.includes("/cart/add")) {
+        console.log("🛑 SHOPIFY FORM SUBMIT BLOCKED");
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+      }
+    },
+    true
+  );
+  
   if (!document.querySelector('[data-photo-uploader]')) {
     return;
   }
@@ -866,12 +882,7 @@ if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
     document.addEventListener('click', async (event) => {
     const btn = event.target.closest('[data-add-to-cart]');
     if (!btn) return;
-
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
-
-    console.log("🛑 Shopify add-to-cart BLOCKED");
+    
 
     if (photos.length !== MAX_PHOTOS) {
       alert(`Lütfen tam ${MAX_PHOTOS} fotoğraf seç.`);
