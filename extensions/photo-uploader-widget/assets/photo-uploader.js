@@ -1,17 +1,5 @@
 (function () {
 
-      // 🧪 FETCH INTERCEPT TEST
-    const originalFetch = window.fetch;
-
-    window.fetch = async function (...args) {
-      if (typeof args[0] === "string" && args[0].includes("/cart/add")) {
-        console.log("🛑 CART ADD FETCH BLOCKED", args);
-        throw new Error("CART BLOCKED FOR TEST");
-      }
-      return originalFetch.apply(this, args);
-    };
-
-
   if (!document.querySelector('[data-photo-uploader]')) {
     return;
   }
