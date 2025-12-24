@@ -943,7 +943,7 @@ if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
         return;
       }
 
-      window.location.assign('/cart');
+      window.location.href = '/cart';
 
     } catch (err) {
       console.error('Add to cart network error', err);
