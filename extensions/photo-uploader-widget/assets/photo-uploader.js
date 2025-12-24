@@ -943,7 +943,8 @@ if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
         return;
       }
 
-      window.location.href = '/cart';
+      window.location.assign('/cart');
+
     } catch (err) {
       console.error('Add to cart network error', err);
       alert('Bir hata oluştu, lütfen tekrar deneyin.');
