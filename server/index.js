@@ -49,12 +49,12 @@ app.post("/webhooks/orders-paid", async (req, res) => {
         });
 
     const text = await res.text();
-    console.log("UPLOAD RESULT", i, res.status, text);
+    console.log("FINALIZE RESULT", res.status, text);
 
     if (!res.ok) {
-        throw new Error("Upload failed at index " + i);
+      throw new Error("Finalize failed");
     }
-
+    
     res.status(200).send("ok");
 
   } catch (err) {

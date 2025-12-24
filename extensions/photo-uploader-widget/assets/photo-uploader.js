@@ -925,7 +925,8 @@ if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
           id: PRODUCT_VARIANT_ID,
           quantity: 1,
           properties: {
-            "magnet_upload_key": uploadKey
+            "magnet_upload_key": uploadKey,
+            "magnet_created_at": String(Date.now())
            }
         })
       });
