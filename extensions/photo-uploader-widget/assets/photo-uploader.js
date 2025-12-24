@@ -867,6 +867,12 @@ if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
     const btn = event.target.closest('[data-add-to-cart]');
     if (!btn) return;
 
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    console.log("🛑 Shopify add-to-cart BLOCKED");
+
     if (photos.length !== MAX_PHOTOS) {
       alert(`Lütfen tam ${MAX_PHOTOS} fotoğraf seç.`);
       return;
