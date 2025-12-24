@@ -881,10 +881,14 @@ if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
     }
 
     try {
+
+      btn.disabled = true;
       // 1) Bu sipariş için benzersiz bir anahtar üret
       const uploadKey = generateUploadKey();
 
       for (let i = 0; i < photos.length; i++) {
+        btn.textContent = `Uploading ${i + 1}/${photos.length}`;
+
         const res = await fetch("https://magnet-upload.kendinehasyazilimci.workers.dev/upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -940,11 +944,14 @@ if (!window.__PHOTO_UPLOADER_ADD_HANDLER__) {
 
       if (!response.ok) {
         console.error('Add to cart error', response.status, data);
-        alert('Ürün sepete eklenemedi. (Hata kodu: ' + response.status + ')');
-        return;
-      }
+        alert('Fotoğraflar yüklenemedi. Lütfen tekrar dene.');
 
-      window.location.href = '/cart';
+        btn.disabled = false;
+        btn.textContent = 'ADD TO CART';
+
+        return;
+
+      }
 
     } catch (err) {
       console.error('Add to cart network error', err);

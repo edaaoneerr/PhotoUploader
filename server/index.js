@@ -1,66 +1,90 @@
 import express from "express";
 import { createRequestHandler } from "@react-router/express";
 import * as build from "../build/server/index.js";
+import fetch from "node-fetch";
 
 const app = express();
+app.use(express.json());
 
-/* -------------------- */
-/* SHOPIFY WEBHOOK */
-/* -------------------- */
-app.use((req, res, next) => {
-  console.log("🔥 INCOMING:", req.method, req.url);
-  next();
-});
-
-
-app.use("/webhooks/orders-paid", express.json());
+const EXPECTED_PHOTOS = 9;
 
 app.post("/webhooks/orders-paid", async (req, res) => {
-  try {
-    const order = req.body;
+  const order = req.body;
+  const orderId = order.id;
 
-    console.log("🟢 ORDER PAID:", order.id);
+  const logs = [];
+  const log = (msg, data) => {
+    logs.push({ time: new Date().toISOString(), msg, data });
+  };
 
-    let uploadKey = null;
+  log("ORDER_RECEIVED", { orderId });
 
-    for (const item of order.line_items || []) {
-      for (const prop of item.properties || []) {
-        if (prop.name === "magnet_upload_key") {
-          uploadKey = prop.value;
-        }
+  let uploadKey = null;
+
+  for (const item of order.line_items || []) {
+    for (const prop of item.properties || []) {
+      if (prop.name === "magnet_upload_key") {
+        uploadKey = prop.value;
       }
     }
-
-    if (!uploadKey) {
-      console.warn("⚠️ magnet_upload_key bulunamadı");
-      return res.status(200).send("no magnet key");
-    }
-
-    console.log("🧲 magnet_upload_key:", uploadKey);
-
-
-    const res =  await fetch("https://magnet-upload.kendinehasyazilimci.workers.dev/finalize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            key: uploadKey,
-            orderId: order.id
-        })
-        });
-
-    const text = await res.text();
-    console.log("FINALIZE RESULT", res.status, text);
-
-    if (!res.ok) {
-      throw new Error("Finalize failed");
-    }
-    
-    res.status(200).send("ok");
-
-  } catch (err) {
-    console.error("❌ Webhook error", err);
-    res.status(500).send("error");
   }
+
+  if (!uploadKey) {
+    log("FAILED", { reason: "missing_upload_key" });
+    console.table(logs);
+    return res.status(200).send("ok");
+  }
+
+  log("UPLOAD_KEY_FOUND", { uploadKey });
+
+  const verifyRes = await fetch(
+    "https://magnet-upload.kendinehasyazilimci.workers.dev/verify",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        key: uploadKey,
+        expectedCount: EXPECTED_PHOTOS
+      })
+    }
+  );
+
+  const verify = await verifyRes.json();
+  log("VERIFY_RESULT", verify);
+
+  if (!verify.ok) {
+    log("RETRYABLE", {
+      reason: "photos_missing",
+      found: verify.found
+    });
+
+    console.table(logs);
+    return res.status(200).send("retry_pending");
+  }
+
+  const finalizeRes = await fetch(
+    "https://magnet-upload.kendinehasyazilimci.workers.dev/finalize",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        key: uploadKey,
+        orderId
+      })
+    }
+  );
+
+  const finalize = await finalizeRes.json();
+  log("FINALIZE_RESULT", finalize);
+
+  if (finalize.ok) {
+    log("COMPLETED", { orderId });
+  } else {
+    log("FAILED", { reason: finalize.reason });
+  }
+
+  console.table(logs);
+  res.status(200).send("ok");
 });
 
 /* -------------------- */
