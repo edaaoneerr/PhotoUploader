@@ -11,4 +11,5 @@ if (process.env.NODE_ENV === "production") {
   prisma = global.__prisma;
 }
 
+export default prisma;  
 export { prisma };
