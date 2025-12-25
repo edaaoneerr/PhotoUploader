@@ -20,16 +20,3 @@ export async function getMagnetOrders() {
     }
   });
 }
-
-
-  return orders.map(o => ({
-    id: o.id,
-    orderName: o.orderName,
-    email: o.email,
-    customerName: o.customerName,
-    status: o.status,
-    photosCount: o.photosCount,
-    uploadKey: o.uploadKey,
-    logs: o.logs
-  }));
-}
