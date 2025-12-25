@@ -1,5 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { prisma } from "../db.server";
 
 export async function getMagnetOrders() {
   const orders = await prisma.order.findMany({
