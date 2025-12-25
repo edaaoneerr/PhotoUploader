@@ -1,8 +1,10 @@
 import express from "express";
+import { PrismaClient } from "@prisma/client";
+import fetch from "node-fetch";
 import { createRequestHandler } from "@react-router/express";
 import * as build from "../build/server/index.js";
-import fetch from "node-fetch";
 
+const prisma = new PrismaClient();
 const app = express();
 app.use(express.json());
 
@@ -10,15 +12,11 @@ const EXPECTED_PHOTOS = 9;
 
 app.post("/webhooks/orders-paid", async (req, res) => {
   const order = req.body;
-  const orderId = order.id;
+  const orderId = String(order.id);
 
-  const logs = [];
-  const log = (msg, data) => {
-    logs.push({ time: new Date().toISOString(), msg, data });
-  };
-
-  log("ORDER_RECEIVED", { orderId });
-
+  /* -------------------- */
+  /* 1. uploadKey bul */
+  /* -------------------- */
   let uploadKey = null;
 
   for (const item of order.line_items || []) {
@@ -30,13 +28,45 @@ app.post("/webhooks/orders-paid", async (req, res) => {
   }
 
   if (!uploadKey) {
-    log("FAILED", { reason: "missing_upload_key" });
-    console.table(logs);
+    await prisma.orderLog.create({
+      data: {
+        orderId,
+        type: "FAILED",
+        message: "missing_upload_key"
+      }
+    });
     return res.status(200).send("ok");
   }
 
-  log("UPLOAD_KEY_FOUND", { uploadKey });
+  /* -------------------- */
+  /* 2. Order oluştur */
+  /* -------------------- */
+  await prisma.order.upsert({
+    where: { id: orderId },
+    update: {},
+    create: {
+      id: orderId,
+      orderName: order.name,
+      email: order.email,
+      customerName: order.customer
+        ? `${order.customer.first_name} ${order.customer.last_name}`
+        : null,
+      status: "retrying",
+      uploadKey,
+      photosCount: 0
+    }
+  });
 
+  await prisma.orderLog.create({
+    data: {
+      orderId,
+      type: "ORDER_RECEIVED"
+    }
+  });
+
+  /* -------------------- */
+  /* 3. Verify */
+  /* -------------------- */
   const verifyRes = await fetch(
     "https://magnet-upload.kendinehasyazilimci.workers.dev/verify",
     {
@@ -50,18 +80,31 @@ app.post("/webhooks/orders-paid", async (req, res) => {
   );
 
   const verify = await verifyRes.json();
-  log("VERIFY_RESULT", verify);
+
+  await prisma.orderLog.create({
+    data: {
+      orderId,
+      type: "VERIFY_RESULT",
+      payload: verify
+    }
+  });
+
+  await prisma.order.update({
+    where: { id: orderId },
+    data: { photosCount: verify.found }
+  });
 
   if (!verify.ok) {
-    log("RETRYABLE", {
-      reason: "photos_missing",
-      found: verify.found
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { status: "retrying" }
     });
-
-    console.table(logs);
     return res.status(200).send("retry_pending");
   }
 
+  /* -------------------- */
+  /* 4. Finalize */
+  /* -------------------- */
   const finalizeRes = await fetch(
     "https://magnet-upload.kendinehasyazilimci.workers.dev/finalize",
     {
@@ -75,22 +118,32 @@ app.post("/webhooks/orders-paid", async (req, res) => {
   );
 
   const finalize = await finalizeRes.json();
-  log("FINALIZE_RESULT", finalize);
+
+  await prisma.orderLog.create({
+    data: {
+      orderId,
+      type: "FINALIZE_RESULT",
+      payload: finalize
+    }
+  });
 
   if (finalize.ok) {
-    log("COMPLETED", { orderId });
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { status: "completed" }
+    });
   } else {
-    log("FAILED", { reason: finalize.reason });
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { status: "failed" }
+    });
   }
 
-  console.table(logs);
   res.status(200).send("ok");
 });
 
 /* -------------------- */
-/* REACT ROUTER HANDLER */
-/* -------------------- */
-
+/* React Router */
 app.all(
   "*",
   createRequestHandler({
@@ -99,8 +152,4 @@ app.all(
   })
 );
 
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log("🚀 Server running on port", PORT);
-});
+app.listen(process.env.PORT || 3000);

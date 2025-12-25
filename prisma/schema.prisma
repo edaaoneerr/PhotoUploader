@@ -9,9 +9,10 @@ generator client {
 // enough when changing adapters.
 // See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
+
 
 
 model Session {
@@ -30,4 +31,31 @@ model Session {
   locale        String?
   collaborator  Boolean?  @default(false)
   emailVerified Boolean?  @default(false)
+}
+
+model Order {
+  id           String   @id
+  orderName    String
+  email        String
+  customerName String?
+  status       String   // completed | failed | retrying | refunded | mailed
+  uploadKey    String?
+  photosCount  Int
+  hidden       Boolean  @default(false)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  logs         OrderLog[]
+}
+
+model OrderLog {
+  id        Int      @id @default(autoincrement())
+  orderId   String
+  type      String
+  message   String?
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
