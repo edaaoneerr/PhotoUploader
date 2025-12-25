@@ -1,19 +1,26 @@
-import { prisma } from "../db.server";
+import prismaDefault, { prisma as prismaNamed } from "../db.server";
 
 export async function getMagnetOrders() {
-  const orders = await prisma.order.findMany({
-    where: {
-      hidden: false
-    },
-    orderBy: {
-      createdAt: "desc"
-    },
+  console.log("🧪 prismaDefault:", prismaDefault);
+  console.log("🧪 prismaNamed:", prismaNamed);
+
+  const prisma = prismaDefault || prismaNamed;
+
+  if (!prisma) {
+    throw new Error("PRISMA IS UNDEFINED");
+  }
+
+  return prisma.order.findMany({
+    where: { hidden: false },
+    orderBy: { createdAt: "desc" },
     include: {
       logs: {
         orderBy: { createdAt: "asc" }
       }
     }
   });
+}
+
 
   return orders.map(o => ({
     id: o.id,
