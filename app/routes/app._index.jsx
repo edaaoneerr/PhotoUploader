@@ -1,5 +1,4 @@
 import { useLoaderData } from "react-router";
-import { Page, Card, Text } from "@shopify/polaris";
 import { useEffect, useState } from "react";
 import { getMagnetOrders } from "../services/magnet-orders.server";
 
@@ -8,50 +7,21 @@ export async function loader() {
   return { orders };
 }
 
-
 const WORKER = "https://magnet-upload.kendinehasyazilimci.workers.dev";
 const actionBtn = (bg) => ({
-  padding: "6px 10px",
+  padding: "6px 12px",
   background: bg,
   color: "white",
-  border: "none",
   borderRadius: 6,
   cursor: "pointer",
   fontSize: 12,
-  fontWeight: 600
+  fontWeight: 600,
+  userSelect: "none",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center"
 });
 
-function ActionButton({ color, onClick, children }) {
-  return (
-    <div
-      role="button"
-      onMouseDown={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onClick();
-      }}
-      style={{
-        padding: "6px 10px",
-        background: color,
-        color: "white",
-        borderRadius: 6,
-        cursor: "pointer",
-        fontSize: 12,
-        fontWeight: 600,
-        userSelect: "none",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center"
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-/* -------------------- */
-/* STATUS BADGE */
-/* -------------------- */
 function StatusBadge({ status }) {
   const map = {
     completed: "#008060",
@@ -87,6 +57,8 @@ function PhotoGallery({ uploadKey }) {
   useEffect(() => {
     if (!uploadKey) return;
 
+    setLoading(true);
+
     fetch(`${WORKER}/list?key=${encodeURIComponent(uploadKey)}`)
       .then(r => r.json())
       .then(d => setPhotos(d.objects || []))
@@ -101,30 +73,30 @@ function PhotoGallery({ uploadKey }) {
     return <div style={{ marginTop: 12 }}>No photos found.</div>;
   }
 
-  const downloadAll = async () => {
-    for (const p of photos) {
+  const downloadAll = () => {
+    photos.forEach((p, i) => {
       const url = `${WORKER}/file?object=${encodeURIComponent(p)}`;
       const a = document.createElement("a");
       a.href = url;
-      a.download = p.split("/").pop();
+      a.download = `photo_${i + 1}.jpg`;
+      document.body.appendChild(a);
       a.click();
-    }
+      document.body.removeChild(a);
+    });
   };
 
   return (
     <div style={{ marginTop: 16 }}>
-      <ActionButton
-        color="#d46ec5ff"
-        onClick={() => {
-          console.log("Download All", order.id);
-        }}
+      <div
+        style={actionBtn("#5C6AC4")}
+        onClick={downloadAll}
       >
         Download All
-      </ActionButton>
-
+      </div>
 
       <div
         style={{
+          marginTop: 12,
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
           gap: 12
@@ -147,22 +119,25 @@ function PhotoGallery({ uploadKey }) {
                 style={{
                   width: "100%",
                   borderRadius: 6,
-                  marginBottom: 6
+                  marginBottom: 6,
+                  cursor: "pointer"
                 }}
+                onClick={() => window.open(url, "_blank")}
               />
 
-              <ActionButton
-              color="#008060"
-              onClick={() => {
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `photo_${i + 1}.jpg`;
-                a.click();
-              }}
-            >
-              Download
-            </ActionButton>
-
+              <div
+                style={{ ...actionBtn("#008060"), width: "100%" }}
+                onClick={() => {
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `photo_${i + 1}.jpg`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                }}
+              >
+                Download
+              </div>
             </div>
           );
         })}
@@ -170,7 +145,6 @@ function PhotoGallery({ uploadKey }) {
     </div>
   );
 }
-
 
 /* -------------------- */
 /* MAIN PAGE */
@@ -190,121 +164,121 @@ export default function AppIndex() {
   );
 
   return (
-    <Page title="Orders">
-      <Card>
-        <div style={{ padding: 20 }}>
-          {/* TOP TOGGLE */}
-          <button
-            type="button"
-            onClick={() => setShowHidden(v => !v)}
+    <div style={{ padding: 24 }}>
+      {/* TOP BAR */}
+      <div
+        style={{
+          marginBottom: 20,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center"
+        }}
+      >
+        <h2 style={{ margin: 0 }}>Orders</h2>
+
+        <div
+          style={actionBtn("#6D7175")}
+          onClick={() => setShowHidden(v => !v)}
+        >
+          {showHidden ? "Hide hidden orders" : "Show hidden orders"}
+        </div>
+      </div>
+
+      {visibleOrders.length === 0 && (
+        <div>No orders found.</div>
+      )}
+
+      {visibleOrders.map(order => (
+        <div
+          key={order.id}
+          style={{
+            border: "1px solid #e1e3e5",
+            borderRadius: 10,
+            padding: 16,
+            marginBottom: 16
+          }}
+        >
+          {/* HEADER */}
+          <div
             style={{
-              marginBottom: 20,
-              padding: "8px 14px",
-              borderRadius: 6,
-              border: "1px solid #ccc",
-              cursor: "pointer"
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
             }}
           >
-            {showHidden ? "Hide hidden orders" : "Show hidden orders"}
-          </button>
+            <div>
+              <div style={{ fontWeight: 600 }}>
+                {order.orderName}
+              </div>
+              <div style={{ fontSize: 13, color: "#666" }}>
+                {order.customerName || "No name"} · {order.email}
+              </div>
+              <div style={{ marginTop: 6 }}>
+                <StatusBadge status={order.status} />{" "}
+                <span style={{ fontSize: 12, color: "#666" }}>
+                  {order.photosCount} photos
+                </span>
+              </div>
+            </div>
 
-          {visibleOrders.length === 0 && (
-            <Text>No orders found.</Text>
-          )}
-
-          {visibleOrders.map(order => (
-            <div
-              key={order.id}
-              style={{
-                border: "1px solid #e1e3e5",
-                borderRadius: 8,
-                padding: 16,
-                marginBottom: 14
-              }}
-            >
-              {/* HEADER */}
+            {/* ACTIONS */}
+            <div style={{ display: "flex", gap: 8 }}>
               <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center"
+                style={actionBtn("#008060")}
+                onClick={() =>
+                  toggle(openPhotos, setOpenPhotos, order.id)
+                }
+              >
+                View Photos
+              </div>
+
+              <div
+                style={actionBtn("#5C6AC4")}
+                onClick={() =>
+                  toggle(openLogs, setOpenLogs, order.id)
+                }
+              >
+                See Logs
+              </div>
+
+              <div
+                style={actionBtn("#6D7175")}
+                onClick={() => {
+                  console.log("HIDE ORDER", order.id);
                 }}
               >
-                <div>
-                  <div style={{ fontWeight: 600 }}>
-                    {order.orderName}
-                  </div>
-                  <div style={{ fontSize: 13, color: "#666" }}>
-                    {order.customerName || "No name"} · {order.email}
-                  </div>
-                  <div style={{ marginTop: 6 }}>
-                    <StatusBadge status={order.status} />{" "}
-                    <span style={{ fontSize: 12, color: "#666" }}>
-                      {order.photosCount} photos
-                    </span>
-                  </div>
-                </div>
-
-                {/* ACTIONS */}
-                <div style={{ display: "flex", gap: 8 }}>
-                <ActionButton
-                  color="#008060"
-                  onClick={() =>
-                    toggle(openPhotos, setOpenPhotos, order.id)
-                  }
-                >
-                  View Photos
-                </ActionButton>
-
-                <ActionButton
-                  color="#5C6AC4"
-                  onClick={() =>
-                    toggle(openLogs, setOpenLogs, order.id)
-                  }
-                >
-                  See Logs
-                </ActionButton>
-
-                <ActionButton
-                  color="#6D7175"
-                  onClick={() => {
-                    console.log("HIDE", order.id);
-                  }}
-                >
-                  Hide
-                </ActionButton>
+                Hide
               </div>
-              </div>
-
-              {/* PHOTOS */}
-              {openPhotos[order.id] && order.uploadKey && (
-                <PhotoGallery uploadKey={order.uploadKey} />
-              )}
-
-              {/* LOGS */}
-              {openLogs[order.id] && (
-                <div
-                  style={{
-                    marginTop: 12,
-                    background: "#fafbfb",
-                    padding: 12,
-                    borderRadius: 6,
-                    fontSize: 12
-                  }}
-                >
-                  {order.logs.map(log => (
-                    <div key={log.id}>
-                      <strong>{log.type}</strong> ·{" "}
-                      {new Date(log.createdAt).toLocaleString()}
-                      {log.message && ` — ${log.message}`}
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
-          ))}
+          </div>
+
+          {/* PHOTOS */}
+          {openPhotos[order.id] && order.uploadKey && (
+            <PhotoGallery uploadKey={order.uploadKey} />
+          )}
+
+          {/* LOGS */}
+          {openLogs[order.id] && (
+            <div
+              style={{
+                marginTop: 12,
+                background: "#fafbfb",
+                padding: 12,
+                borderRadius: 6,
+                fontSize: 12
+              }}
+            >
+              {order.logs.map(log => (
+                <div key={log.id}>
+                  <strong>{log.type}</strong>{" "}
+                  · {new Date(log.createdAt).toLocaleString()}
+                  {log.message && ` — ${log.message}`}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      </Card>
-    </Page>
+      ))}
+    </div>
   );
 }
