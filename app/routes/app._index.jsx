@@ -10,6 +10,17 @@ export async function loader() {
 
 
 const WORKER = "https://magnet-upload.kendinehasyazilimci.workers.dev";
+const actionBtn = (bg) => ({
+  padding: "6px 10px",
+  background: bg,
+  color: "white",
+  border: "none",
+  borderRadius: 6,
+  cursor: "pointer",
+  fontSize: 12,
+  fontWeight: 600
+});
+
 
 /* -------------------- */
 /* STATUS BADGE */
@@ -221,25 +232,29 @@ export default function AppIndex() {
 
                 {/* ACTIONS */}
                 <div style={{ display: "flex", gap: 8 }}>
-                <button
+                  <button
                   style={actionBtn("#008060")}
-                  onClick={() => toggle(openPhotos, setOpenPhotos, order.id)}
-                >
-                  View Photos
-                </button>
+                    onClick={() =>
+                      toggle(openPhotos, setOpenPhotos, order.id)
+                    }
+                  >
+                    View Photos
+                  </button>
 
-                <button
+                  <button
                   style={actionBtn("#5C6AC4")}
-                  onClick={() => toggle(openLogs, setOpenLogs, order.id)}
-                >
-                  See Logs
-                </button>
+                    onClick={() =>
+                      toggle(openLogs, setOpenLogs, order.id)
+                    }
+                  >
+                    See Logs
+                  </button>
 
-                <button style={actionBtn("#6D7175")}>
-                  Hide
-                </button>
+                  <button style={actionBtn("#6D7175")}>
+                    Hide
+                  </button>
+                </div>
               </div>
-
 
               {/* PHOTOS */}
               {openPhotos[order.id] && order.uploadKey && (
