@@ -1,4 +1,4 @@
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "react-router";
 import { Page, Card, Button, Text } from "@shopify/polaris";
 import { useEffect, useState } from "react";
 
@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 /* LOADER */
 /* -------------------- */
 export async function loader() {
+  console.log("🟢 LOADER CALISTI");
   return {
     orders: [
       {
@@ -13,12 +14,6 @@ export async function loader() {
         orderName: "#1001",
         email: "test@example.com",
         status: "completed",
-      },
-      {
-        id: "2",
-        orderName: "#1002",
-        email: "test2@example.com",
-        status: "retrying",
       },
     ],
   };
@@ -29,7 +24,7 @@ export async function loader() {
 /* -------------------- */
 export default function AppIndex() {
   const { orders } = useLoaderData();
-  const [open, setOpen] = useState({});
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     console.log("✅ CLIENT HYDRATED");
@@ -39,28 +34,20 @@ export default function AppIndex() {
     <Page title="Orders">
       {orders.map((order) => (
         <Card key={order.id} sectioned>
-          <Text as="h3" variant="headingSm">
-            {order.orderName}
-          </Text>
-
+          <Text as="h3">{order.orderName}</Text>
           <Text tone="subdued">{order.email}</Text>
 
-          <div style={{ marginTop: 8 }}>
-            <Button
-              onClick={() => {
-                console.log("🔥 CLICK WORKS", order.id);
-                alert(`Clicked ${order.orderName}`);
-                setOpen((o) => ({ ...o, [order.id]: !o[order.id] }));
-              }}
-            >
-              View Photos
-            </Button>
-          </div>
+          <Button
+            onClick={() => {
+              console.log("🔥 BUTTON CLICK");
+              setOpen(!open);
+            }}
+          >
+            View Photos
+          </Button>
 
-          {open[order.id] && (
-            <div style={{ marginTop: 12 }}>
-              <Text>Photos would open here</Text>
-            </div>
+          {open && (
+            <Text>Dropdown opened</Text>
           )}
         </Card>
       ))}
