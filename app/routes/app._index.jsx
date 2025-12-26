@@ -88,7 +88,11 @@ function PhotoGallery({ uploadKey }) {
     <div style={{ marginTop: 16 }}>
       <button
         type="button"
-        onClick={downloadAll}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          downloadAll();
+        }}
         style={{
           marginBottom: 12,
           padding: "6px 12px",
@@ -132,7 +136,9 @@ function PhotoGallery({ uploadKey }) {
 
               <button
                 type="button"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   const a = document.createElement("a");
                   a.href = url;
                   a.download = `photo_${i + 1}.jpg`;
@@ -238,9 +244,11 @@ export default function AppIndex() {
                   <button
                     type="button"
                     style={actionBtn("#008060")}
-                    onClick={() =>
-                      toggle(openPhotos, setOpenPhotos, order.id)
-                    }
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggle(openPhotos, setOpenPhotos, order.id);
+                    }}
                   >
                     View Photos
                   </button>
@@ -248,19 +256,29 @@ export default function AppIndex() {
                   <button
                     type="button"
                     style={actionBtn("#5C6AC4")}
-                    onClick={() =>
-                      toggle(openLogs, setOpenLogs, order.id)
-                    }
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggle(openLogs, setOpenLogs, order.id);
+                    }}
                   >
                     See Logs
                   </button>
 
-                  <button 
+                  <button
                     type="button"
-                    style={actionBtn("#6D7175")}>
+                    style={actionBtn("#6D7175")}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      // hide logic buraya gelecek
+                      console.log("HIDE", order.id);
+                    }}
+                  >
                     Hide
                   </button>
                 </div>
+
               </div>
 
               {/* PHOTOS */}
