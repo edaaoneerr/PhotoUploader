@@ -1,6 +1,13 @@
 import { prisma } from "../db.server";
 
 export async function getMagnetOrders() {
+
+  console.log("PRISMA RUNTIME CHECK", {
+  prismaExists: !!prisma,
+  orderExists: !!prisma?.order,
+  });
+
+
   const orders = await prisma.order.findMany({
     where: {
       hidden: false
