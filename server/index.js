@@ -2,7 +2,7 @@ import express from "express";
 import { PrismaClient } from "@prisma/client";
 import fetch from "node-fetch";
 import { createRequestHandler } from "@react-router/express";
-import * as build from "../build/index.js"; 
+import * as build from "../build/server/index.js";
 
 const WORKER_BASE = "https://magnet-upload.kendinehasyazilimci.workers.dev";
 const prisma = new PrismaClient();
@@ -10,11 +10,6 @@ const app = express();
 app.use(express.json());
 
 const EXPECTED_PHOTOS = 9;
-
-app.get("/", (req, res) => {
-  res.redirect("/app");
-});
-
 
 app.post("/webhooks/orders-paid", async (req, res) => {
   const order = req.body;
