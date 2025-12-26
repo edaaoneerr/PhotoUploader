@@ -2,6 +2,7 @@ import express from "express";
 import { PrismaClient } from "@prisma/client";
 import fetch from "node-fetch";
 import { createRequestHandler } from "@react-router/express";
+import * as build from "../build/index.js"; 
 
 const WORKER_BASE = "https://magnet-upload.kendinehasyazilimci.workers.dev";
 const prisma = new PrismaClient();
@@ -156,5 +157,10 @@ app.post("/webhooks/orders-paid", async (req, res) => {
 
   res.status(200).send("ok");
 });
+
+app.all("*", createRequestHandler({
+  build,
+  mode: process.env.NODE_ENV
+}));
 
 app.listen(process.env.PORT || 3000);
