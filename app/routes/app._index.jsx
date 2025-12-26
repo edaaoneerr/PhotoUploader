@@ -1,12 +1,9 @@
 import { useLoaderData } from "@shopify/shopify-app-react-router/react";
 import { useEffect, useState } from "react";
 
-// ✅ SERVER FUNCTION IMPORT
-import { getMagnetOrders } from "../services/magnet-orders.server";
-
-export async function loader() {
-  const orders = await getMagnetOrders();
-  console.log("SERVER ORDERS:", orders);
+export async function loader({ request }) {
+  const { getMagnetOrders } = await import("../services/magnet-orders.server");
+  const orders = await getMagnetOrders(request);
   return { orders };
 }
 
