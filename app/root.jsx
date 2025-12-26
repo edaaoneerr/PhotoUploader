@@ -1,13 +1,18 @@
-// app/root.jsx
 import { Outlet } from "react-router";
-import { AppProvider } from "@shopify/polaris";
-import enTranslations from "@shopify/polaris/locales/en.json";
-import "@shopify/polaris/build/esm/styles.css";
+import { useEffect } from "react";
 
 export default function Root() {
+  useEffect(() => {
+    console.log("🔥 ROOT CLIENT EFFECT");
+  }, []);
+
   return (
-    <AppProvider i18n={enTranslations}>
+    <div
+      onClick={() => console.log("🔥 ROOT CLICK")}
+      style={{ padding: 40, border: "3px solid red" }}
+    >
+      ROOT WRAPPER
       <Outlet />
-    </AppProvider>
+    </div>
   );
 }
