@@ -1,126 +1,69 @@
-import { useLoaderData } from "react-router";
+import { useLoaderData } from "@remix-run/react";
+import { Page, Card, Button, Text } from "@shopify/polaris";
 import { useEffect, useState } from "react";
 
-export async function loader({ request }) {
-  const { getMagnetOrders } = await import("../services/magnet-orders.server");
-  const orders = await getMagnetOrders(request);
-  return { orders };
-}
-
-const WORKER = "https://magnet-upload.kendinehasyazilimci.workers.dev";
-
-const actionBtn = (bg) => ({
-  padding: "6px 12px",
-  background: bg,
-  color: "white",
-  borderRadius: 6,
-  cursor: "pointer",
-  fontSize: 12,
-  fontWeight: 600,
-  userSelect: "none",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center"
-});
-
-function StatusBadge({ status }) {
-  const map = {
-    completed: "#008060",
-    retrying: "#E0A800",
-    failed: "#D82C0D",
-    refunded: "#6D7175",
-    mailed: "#5C6AC4"
+/* -------------------- */
+/* LOADER */
+/* -------------------- */
+export async function loader() {
+  return {
+    orders: [
+      {
+        id: "1",
+        orderName: "#1001",
+        email: "test@example.com",
+        status: "completed",
+      },
+      {
+        id: "2",
+        orderName: "#1002",
+        email: "test2@example.com",
+        status: "retrying",
+      },
+    ],
   };
-
-  return (
-    <span style={{
-      background: map[status] || "#999",
-      color: "white",
-      padding: "4px 10px",
-      borderRadius: 999,
-      fontSize: 12,
-      fontWeight: 600
-    }}>
-      {status}
-    </span>
-  );
 }
 
-function PhotoGallery({ uploadKey }) {
-  const [photos, setPhotos] = useState([]);
-
-  useEffect(() => {
-    if (!uploadKey) return;
-
-    fetch(`${WORKER}/list?key=${encodeURIComponent(uploadKey)}`)
-      .then(r => r.json())
-      .then(d => {
-        console.log("PHOTOS FETCHED", d.objects);
-        setPhotos(d.objects || []);
-      });
-  }, [uploadKey]);
-
-  if (!photos.length) return <div>No photos</div>;
-
-  return (
-    <div style={{ marginTop: 12 }}>
-      {photos.map((p, i) => {
-        const url = `${WORKER}/file?object=${encodeURIComponent(p)}`;
-        return (
-          <div key={p}>
-            <img
-              src={url}
-              style={{ width: 120, cursor: "pointer" }}
-              onClick={() => {
-                console.log("IMAGE CLICK", p);
-                window.open(url);
-              }}
-            />
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
+/* -------------------- */
+/* PAGE */
+/* -------------------- */
 export default function AppIndex() {
   const { orders } = useLoaderData();
-
-  useEffect(() => {
-    console.log("CLIENT HYDRATED");
-  }, []);
-
   const [open, setOpen] = useState({});
 
+  useEffect(() => {
+    console.log("✅ CLIENT HYDRATED");
+  }, []);
+
   return (
-    <div style={{ padding: 24 }}>
-      <h2>Orders</h2>
+    <Page title="Orders">
+      {orders.map((order) => (
+        <Card key={order.id} sectioned>
+          <Text as="h3" variant="headingSm">
+            {order.orderName}
+          </Text>
 
-      {orders.map(order => (
-        <div key={order.id} style={{ border: "1px solid #ccc", padding: 12 }}>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <div>
-              <strong>{order.orderName}</strong>
-              <div>{order.email}</div>
-              <StatusBadge status={order.status} />
-            </div>
+          <Text tone="subdued">{order.email}</Text>
 
-            <div
-              style={actionBtn("#008060")}
+          <div style={{ marginTop: 8 }}>
+            <Button
               onClick={() => {
-                console.log("VIEW CLICK", order.id);
-                setOpen(o => ({ ...o, [order.id]: !o[order.id] }));
+                console.log("🔥 CLICK WORKS", order.id);
+                alert(`Clicked ${order.orderName}`);
+                setOpen((o) => ({ ...o, [order.id]: !o[order.id] }));
               }}
             >
               View Photos
-            </div>
+            </Button>
           </div>
 
           {open[order.id] && (
-            <PhotoGallery uploadKey={order.uploadKey} />
+            <div style={{ marginTop: 12 }}>
+              <Text>Photos would open here</Text>
+            </div>
           )}
-        </div>
+        </Card>
       ))}
-    </div>
+    </Page>
   );
 }
