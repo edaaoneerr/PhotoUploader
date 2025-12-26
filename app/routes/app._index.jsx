@@ -87,6 +87,7 @@ function PhotoGallery({ uploadKey }) {
   return (
     <div style={{ marginTop: 16 }}>
       <button
+        type="button"
         onClick={downloadAll}
         style={{
           marginBottom: 12,
@@ -130,6 +131,7 @@ function PhotoGallery({ uploadKey }) {
               />
 
               <button
+                type="button"
                 onClick={() => {
                   const a = document.createElement("a");
                   a.href = url;
@@ -181,6 +183,7 @@ export default function AppIndex() {
         <div style={{ padding: 20 }}>
           {/* TOP TOGGLE */}
           <button
+            type="button"
             onClick={() => setShowHidden(v => !v)}
             style={{
               marginBottom: 20,
@@ -233,7 +236,8 @@ export default function AppIndex() {
                 {/* ACTIONS */}
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
-                  style={actionBtn("#008060")}
+                    type="button"
+                    style={actionBtn("#008060")}
                     onClick={() =>
                       toggle(openPhotos, setOpenPhotos, order.id)
                     }
@@ -242,7 +246,8 @@ export default function AppIndex() {
                   </button>
 
                   <button
-                  style={actionBtn("#5C6AC4")}
+                    type="button"
+                    style={actionBtn("#5C6AC4")}
                     onClick={() =>
                       toggle(openLogs, setOpenLogs, order.id)
                     }
@@ -250,7 +255,9 @@ export default function AppIndex() {
                     See Logs
                   </button>
 
-                  <button style={actionBtn("#6D7175")}>
+                  <button 
+                    type="button"
+                    style={actionBtn("#6D7175")}>
                     Hide
                   </button>
                 </div>
