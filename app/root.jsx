@@ -1,25 +1,13 @@
-import { Outlet, useLoaderData, useRouteError } from "react-router";
-import { boundary } from "@shopify/shopify-app-react-router/server";
-import { AppProvider as ShopifyAppProvider } from "@shopify/shopify-app-react-router/react";
-import { authenticate } from "../shopify.server";
+// app/root.jsx
+import { Outlet } from "react-router";
+import { AppProvider } from "@shopify/polaris";
+import enTranslations from "@shopify/polaris/locales/en.json";
+import "@shopify/polaris/build/esm/styles.css";
 
-export const loader = async ({ request }) => {
-  await authenticate.admin(request);
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
-};
-
-export default function App() {
-  const { apiKey } = useLoaderData();
-
+export default function Root() {
   return (
-    <ShopifyAppProvider embedded apiKey={apiKey}>
+    <AppProvider i18n={enTranslations}>
       <Outlet />
-    </ShopifyAppProvider>
+    </AppProvider>
   );
 }
-
-export function ErrorBoundary() {
-  return boundary.error(useRouteError());
-}
-
-export const headers = (headersArgs) => boundary.headers(headersArgs);
