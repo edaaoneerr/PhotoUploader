@@ -21,6 +21,33 @@ const actionBtn = (bg) => ({
   fontWeight: 600
 });
 
+function ActionButton({ color, onClick, children }) {
+  return (
+    <div
+      role="button"
+      onMouseDown={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClick();
+      }}
+      style={{
+        padding: "6px 10px",
+        background: color,
+        color: "white",
+        borderRadius: 6,
+        cursor: "pointer",
+        fontSize: 12,
+        fontWeight: 600,
+        userSelect: "none",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center"
+      }}
+    >
+      {children}
+    </div>
+  );
+}
 
 /* -------------------- */
 /* STATUS BADGE */
@@ -86,25 +113,15 @@ function PhotoGallery({ uploadKey }) {
 
   return (
     <div style={{ marginTop: 16 }}>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          downloadAll();
-        }}
-        style={{
-          marginBottom: 12,
-          padding: "6px 12px",
-          background: "#5C6AC4",
-          color: "white",
-          borderRadius: 6,
-          border: "none",
-          cursor: "pointer"
+      <ActionButton
+        color="#d46ec5ff"
+        onClick={() => {
+          console.log("Download All", order.id);
         }}
       >
         Download All
-      </button>
+      </ActionButton>
+
 
       <div
         style={{
@@ -134,29 +151,18 @@ function PhotoGallery({ uploadKey }) {
                 }}
               />
 
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `photo_${i + 1}.jpg`;
-                  a.click();
-                }}
-                style={{
-                  width: "100%",
-                  padding: "6px",
-                  background: "#008060",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  fontSize: 12
-                }}
-              >
-                Download
-              </button>
+              <ActionButton
+              color="#008060"
+              onClick={() => {
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `photo_${i + 1}.jpg`;
+                a.click();
+              }}
+            >
+              Download
+            </ActionButton>
+
             </div>
           );
         })}
@@ -241,44 +247,33 @@ export default function AppIndex() {
 
                 {/* ACTIONS */}
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    type="button"
-                    style={actionBtn("#008060")}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      toggle(openPhotos, setOpenPhotos, order.id);
-                    }}
-                  >
-                    View Photos
-                  </button>
+                <ActionButton
+                  color="#008060"
+                  onClick={() =>
+                    toggle(openPhotos, setOpenPhotos, order.id)
+                  }
+                >
+                  View Photos
+                </ActionButton>
 
-                  <button
-                    type="button"
-                    style={actionBtn("#5C6AC4")}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      toggle(openLogs, setOpenLogs, order.id);
-                    }}
-                  >
-                    See Logs
-                  </button>
+                <ActionButton
+                  color="#5C6AC4"
+                  onClick={() =>
+                    toggle(openLogs, setOpenLogs, order.id)
+                  }
+                >
+                  See Logs
+                </ActionButton>
 
-                  <button
-                    type="button"
-                    style={actionBtn("#6D7175")}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      // hide logic buraya gelecek
-                      console.log("HIDE", order.id);
-                    }}
-                  >
-                    Hide
-                  </button>
-                </div>
-
+                <ActionButton
+                  color="#6D7175"
+                  onClick={() => {
+                    console.log("HIDE", order.id);
+                  }}
+                >
+                  Hide
+                </ActionButton>
+              </div>
               </div>
 
               {/* PHOTOS */}
