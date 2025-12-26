@@ -1,4 +1,4 @@
-import { useLoaderData } from "@shopify/shopify-app-react-router/react";
+import { useLoaderData } from "react-router";
 import { useEffect, useState } from "react";
 
 export async function loader({ request }) {
