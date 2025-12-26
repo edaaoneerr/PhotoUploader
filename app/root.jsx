@@ -1,16 +1,25 @@
-// app/root.jsx
-import { Outlet } from "react-router";
-import { AppProvider } from "@shopify/polaris";
-import enTranslations from "@shopify/polaris/locales/en.json";
+import { Outlet, useLoaderData, useRouteError } from "react-router";
+import { boundary } from "@shopify/shopify-app-react-router/server";
+import { AppProvider as ShopifyAppProvider } from "@shopify/shopify-app-react-router/react";
+import { authenticate } from "../shopify.server";
 
-import "@shopify/polaris/build/esm/styles.css";
+export const loader = async ({ request }) => {
+  await authenticate.admin(request);
+  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+};
 
-export default function Root() {
+export default function App() {
+  const { apiKey } = useLoaderData();
+
   return (
-    <AppProvider i18n={enTranslations}>
-      {/* Shopify'in kendi AppProvider'ı zaten app.jsx içinde,
-          burada sadece Polaris'i sarmalıyoruz */}
+    <ShopifyAppProvider embedded apiKey={apiKey}>
       <Outlet />
-    </AppProvider>
+    </ShopifyAppProvider>
   );
 }
+
+export function ErrorBoundary() {
+  return boundary.error(useRouteError());
+}
+
+export const headers = (headersArgs) => boundary.headers(headersArgs);
