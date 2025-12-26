@@ -128,10 +128,20 @@ app.post("/webhooks/orders-paid", async (req, res) => {
   });
 
   if (finalize.ok) {
+    const listRes = await fetch(
+      `${WORKER_BASE}/list?key=${encodeURIComponent(uploadKey)}`
+    );
+    const listData = await listRes.json();
+    const finalCount = listData.objects?.length || 0;
+
     await prisma.order.update({
-      where: { id: orderId },
-      data: { status: "completed" }
+      where: { id: String(orderId) },
+      data: {
+        status: "completed",
+        photosCount: finalCount
+      }
     });
+
   } else {
     await prisma.order.update({
       where: { id: orderId },
