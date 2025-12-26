@@ -10,7 +10,10 @@ const app = express();
 app.use(express.json());
 
 const EXPECTED_PHOTOS = 9;
-
+app.use(
+  "/assets",
+  express.static(path.join(__dirname, "../build/client/assets"))
+);
 app.post("/webhooks/orders-paid", async (req, res) => {
   const order = req.body;
   const orderId = String(order.id);
