@@ -1,5 +1,16 @@
 import { useLoaderData } from "react-router";
 import { useEffect, useState } from "react";
+import {
+  Page,
+  Card,
+  Text,
+  Button,
+  Badge,
+  InlineStack,
+  BlockStack,
+  Divider,
+  Spinner
+} from "@shopify/polaris";
 import { getMagnetOrders } from "../services/magnet-orders.server";
 
 export async function loader() {
@@ -8,42 +19,23 @@ export async function loader() {
 }
 
 const WORKER = "https://magnet-upload.kendinehasyazilimci.workers.dev";
-const actionBtn = (bg) => ({
-  padding: "6px 12px",
-  background: bg,
-  color: "white",
-  borderRadius: 6,
-  cursor: "pointer",
-  fontSize: 12,
-  fontWeight: 600,
-  userSelect: "none",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center"
-});
 
+/* -------------------- */
+/* STATUS BADGE */
+/* -------------------- */
 function StatusBadge({ status }) {
-  const map = {
-    completed: "#008060",
-    retrying: "#E0A800",
-    failed: "#D82C0D",
-    refunded: "#6D7175",
-    mailed: "#5C6AC4"
+  const toneMap = {
+    completed: "success",
+    retrying: "attention",
+    failed: "critical",
+    refunded: "info",
+    mailed: "info"
   };
 
   return (
-    <span
-      style={{
-        background: map[status] || "#999",
-        color: "white",
-        padding: "4px 10px",
-        borderRadius: 999,
-        fontSize: 12,
-        fontWeight: 600
-      }}
-    >
+    <Badge tone={toneMap[status] || "neutral"}>
       {status}
-    </span>
+    </Badge>
   );
 }
 
@@ -55,22 +47,34 @@ function PhotoGallery({ uploadKey }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!uploadKey) return;
+    let cancelled = false;
 
-    setLoading(true);
+    async function load() {
+      setLoading(true);
+      const res = await fetch(
+        `${WORKER}/list?key=${encodeURIComponent(uploadKey)}`
+      );
+      const data = await res.json();
+      if (!cancelled) {
+        setPhotos(data.objects || []);
+        setLoading(false);
+      }
+    }
 
-    fetch(`${WORKER}/list?key=${encodeURIComponent(uploadKey)}`)
-      .then(r => r.json())
-      .then(d => setPhotos(d.objects || []))
-      .finally(() => setLoading(false));
+    if (uploadKey) load();
+    return () => (cancelled = true);
   }, [uploadKey]);
 
   if (loading) {
-    return <div style={{ marginTop: 12 }}>Loading photos…</div>;
+    return (
+      <InlineStack align="center">
+        <Spinner size="small" />
+      </InlineStack>
+    );
   }
 
   if (photos.length === 0) {
-    return <div style={{ marginTop: 12 }}>No photos found.</div>;
+    return <Text tone="subdued">No photos found.</Text>;
   }
 
   const downloadAll = () => {
@@ -86,63 +90,49 @@ function PhotoGallery({ uploadKey }) {
   };
 
   return (
-    <div style={{ marginTop: 16 }}>
-      <div
-        style={actionBtn("#5C6AC4")}
-        onClick={downloadAll}
-      >
-        Download All
-      </div>
+    <BlockStack gap="300">
+      <Button variant="secondary" onClick={downloadAll}>
+        Download all photos
+      </Button>
 
-      <div
-        style={{
-          marginTop: 12,
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 12
-        }}
-      >
+      <InlineStack gap="300" wrap>
         {photos.map((p, i) => {
           const url = `${WORKER}/file?object=${encodeURIComponent(p)}`;
 
           return (
-            <div
-              key={p}
-              style={{
-                border: "1px solid #e1e3e5",
-                borderRadius: 8,
-                padding: 8
-              }}
-            >
-              <img
-                src={url}
-                style={{
-                  width: "100%",
-                  borderRadius: 6,
-                  marginBottom: 6,
-                  cursor: "pointer"
-                }}
-                onClick={() => window.open(url, "_blank")}
-              />
+            <Card key={p} padding="200">
+              <BlockStack gap="200">
+                <img
+                  src={url}
+                  style={{
+                    width: 150,
+                    height: 150,
+                    objectFit: "cover",
+                    borderRadius: 6,
+                    cursor: "pointer"
+                  }}
+                  onClick={() => window.open(url, "_blank")}
+                />
 
-              <div
-                style={{ ...actionBtn("#008060"), width: "100%" }}
-                onClick={() => {
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `photo_${i + 1}.jpg`;
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                }}
-              >
-                Download
-              </div>
-            </div>
+                <Button
+                  size="slim"
+                  onClick={() => {
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `photo_${i + 1}.jpg`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                  }}
+                >
+                  Download
+                </Button>
+              </BlockStack>
+            </Card>
           );
         })}
-      </div>
-    </div>
+      </InlineStack>
+    </BlockStack>
   );
 }
 
@@ -156,129 +146,111 @@ export default function AppIndex() {
   const [openLogs, setOpenLogs] = useState({});
   const [showHidden, setShowHidden] = useState(false);
 
-  const toggle = (map, setMap, id) =>
-    setMap(prev => ({ ...prev, [id]: !prev[id] }));
-
   const visibleOrders = orders.filter(o =>
     showHidden ? true : !o.hidden
   );
 
   return (
-    <div style={{ padding: 24 }}>
-      {/* TOP BAR */}
-      <div
-        style={{
-          marginBottom: 20,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center"
-        }}
-      >
-        <h2 style={{ margin: 0 }}>Orders</h2>
+    <Page title="Orders">
+      <BlockStack gap="400">
+        <InlineStack align="space-between">
+          <Text variant="headingMd">Orders</Text>
 
-        <div
-          style={actionBtn("#6D7175")}
-          onClick={() => setShowHidden(v => !v)}
-        >
-          {showHidden ? "Hide hidden orders" : "Show hidden orders"}
-        </div>
-      </div>
-
-      {visibleOrders.length === 0 && (
-        <div>No orders found.</div>
-      )}
-
-      {visibleOrders.map(order => (
-        <div
-          key={order.id}
-          style={{
-            border: "1px solid #e1e3e5",
-            borderRadius: 10,
-            padding: 16,
-            marginBottom: 16
-          }}
-        >
-          {/* HEADER */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center"
-            }}
+          <Button
+            variant="secondary"
+            onClick={() => setShowHidden(v => !v)}
           >
-            <div>
-              <div style={{ fontWeight: 600 }}>
-                {order.orderName}
-              </div>
-              <div style={{ fontSize: 13, color: "#666" }}>
-                {order.customerName || "No name"} · {order.email}
-              </div>
-              <div style={{ marginTop: 6 }}>
-                <StatusBadge status={order.status} />{" "}
-                <span style={{ fontSize: 12, color: "#666" }}>
-                  {order.photosCount} photos
-                </span>
-              </div>
-            </div>
+            {showHidden ? "Hide hidden orders" : "Show hidden orders"}
+          </Button>
+        </InlineStack>
 
-            {/* ACTIONS */}
-            <div style={{ display: "flex", gap: 8 }}>
-              <div
-                style={actionBtn("#008060")}
-                onClick={() =>
-                  toggle(openPhotos, setOpenPhotos, order.id)
-                }
-              >
-                View Photos
-              </div>
+        {visibleOrders.length === 0 && (
+          <Text tone="subdued">No orders found.</Text>
+        )}
 
-              <div
-                style={actionBtn("#5C6AC4")}
-                onClick={() =>
-                  toggle(openLogs, setOpenLogs, order.id)
-                }
-              >
-                See Logs
-              </div>
+        {visibleOrders.map(order => (
+          <Card key={order.id} padding="400">
+            <BlockStack gap="300">
+              {/* HEADER */}
+              <InlineStack align="space-between">
+                <BlockStack gap="100">
+                  <Text variant="headingSm">{order.orderName}</Text>
+                  <Text tone="subdued">
+                    {order.customerName || "No name"} · {order.email}
+                  </Text>
 
-              <div
-                style={actionBtn("#6D7175")}
-                onClick={() => {
-                  console.log("HIDE ORDER", order.id);
-                }}
-              >
-                Hide
-              </div>
-            </div>
-          </div>
+                  <InlineStack gap="200">
+                    <StatusBadge status={order.status} />
+                    <Text tone="subdued">
+                      {order.photosCount} photos
+                    </Text>
+                  </InlineStack>
+                </BlockStack>
 
-          {/* PHOTOS */}
-          {openPhotos[order.id] && order.uploadKey && (
-            <PhotoGallery uploadKey={order.uploadKey} />
-          )}
+                {/* ACTIONS */}
+                <InlineStack gap="200">
+                  <Button
+                    onClick={() =>
+                      setOpenPhotos(p => ({
+                        ...p,
+                        [order.id]: !p[order.id]
+                      }))
+                    }
+                  >
+                    {openPhotos[order.id] ? "Hide photos" : "View photos"}
+                  </Button>
 
-          {/* LOGS */}
-          {openLogs[order.id] && (
-            <div
-              style={{
-                marginTop: 12,
-                background: "#fafbfb",
-                padding: 12,
-                borderRadius: 6,
-                fontSize: 12
-              }}
-            >
-              {order.logs.map(log => (
-                <div key={log.id}>
-                  <strong>{log.type}</strong>{" "}
-                  · {new Date(log.createdAt).toLocaleString()}
-                  {log.message && ` — ${log.message}`}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
+                  <Button
+                    variant="secondary"
+                    onClick={() =>
+                      setOpenLogs(l => ({
+                        ...l,
+                        [order.id]: !l[order.id]
+                      }))
+                    }
+                  >
+                    Logs
+                  </Button>
+
+                  <Button
+                    tone="critical"
+                    variant="secondary"
+                    onClick={() => {
+                      console.log("HIDE ORDER", order.id);
+                    }}
+                  >
+                    Hide
+                  </Button>
+                </InlineStack>
+              </InlineStack>
+
+              {/* PHOTOS */}
+              {openPhotos[order.id] && order.uploadKey && (
+                <>
+                  <Divider />
+                  <PhotoGallery uploadKey={order.uploadKey} />
+                </>
+              )}
+
+              {/* LOGS */}
+              {openLogs[order.id] && (
+                <>
+                  <Divider />
+                  <BlockStack gap="100">
+                    {order.logs.map(log => (
+                      <Text key={log.id} tone="subdued">
+                        <strong>{log.type}</strong> ·{" "}
+                        {new Date(log.createdAt).toLocaleString()}
+                        {log.message && ` — ${log.message}`}
+                      </Text>
+                    ))}
+                  </BlockStack>
+                </>
+              )}
+            </BlockStack>
+          </Card>
+        ))}
+      </BlockStack>
+    </Page>
   );
 }
