@@ -1,156 +1,169 @@
-import { useLoaderData } from "react-router";
-import { Page, Layout, Card, Button, Badge, Text } from "@shopify/polaris";
-import { useState, useEffect } from "react";
+import { json, useLoaderData } from "@remix-run/react";
+import { useEffect, useState } from "react";
+
+// ✅ SERVER ONLY IMPORT
 import { getMagnetOrders } from "../services/magnet-orders.server";
 
 export async function loader() {
   const orders = await getMagnetOrders();
-  return { orders };
+  console.log("SERVER ORDERS:", orders);
+  return json({ orders });
 }
 
 const WORKER = "https://magnet-upload.kendinehasyazilimci.workers.dev";
 
+const actionBtn = (bg) => ({
+  padding: "6px 12px",
+  background: bg,
+  color: "white",
+  borderRadius: 6,
+  cursor: "pointer",
+  fontSize: 12,
+  fontWeight: 600,
+  userSelect: "none",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center"
+});
+
 function StatusBadge({ status }) {
   const map = {
-    completed: "success",
-    retrying: "attention",
-    failed: "critical",
-    refunded: "warning",
-    mailed: "info"
+    completed: "#008060",
+    retrying: "#E0A800",
+    failed: "#D82C0D",
+    refunded: "#6D7175",
+    mailed: "#5C6AC4"
   };
 
-  return <Badge tone={map[status] || "neutral"}>{status}</Badge>;
+  return (
+    <span style={{
+      background: map[status] || "#999",
+      color: "white",
+      padding: "4px 10px",
+      borderRadius: 999,
+      fontSize: 12,
+      fontWeight: 600
+    }}>
+      {status}
+    </span>
+  );
 }
 
 function PhotoGallery({ uploadKey }) {
   const [photos, setPhotos] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!uploadKey) return;
+
+    setLoading(true);
+
     fetch(`${WORKER}/list?key=${encodeURIComponent(uploadKey)}`)
       .then(r => r.json())
-      .then(d => setPhotos(d.objects || []));
+      .then(d => setPhotos(d.objects || []))
+      .finally(() => setLoading(false));
   }, [uploadKey]);
 
-  if (photos.length === 0) {
-    return <Text>No photos found</Text>;
-  }
+  if (loading) return <div>Loading photos…</div>;
+  if (!photos.length) return <div>No photos found.</div>;
 
   return (
-    <Layout>
-      {photos.map((p, i) => {
-        const url = `${WORKER}/file?object=${encodeURIComponent(p)}`;
-        return (
-          <Layout.Section oneThird key={p}>
-            <Card>
+    <div style={{ marginTop: 12 }}>
+      <div
+        style={actionBtn("#5C6AC4")}
+        onClick={() => {
+          console.log("DOWNLOAD ALL CLICKED");
+          photos.forEach((p, i) => {
+            const url = `${WORKER}/file?object=${encodeURIComponent(p)}`;
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `photo_${i + 1}.jpg`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          });
+        }}
+      >
+        Download All
+      </div>
+
+      <div style={{
+        marginTop: 12,
+        display: "grid",
+        gridTemplateColumns: "repeat(3, 1fr)",
+        gap: 12
+      }}>
+        {photos.map((p, i) => {
+          const url = `${WORKER}/file?object=${encodeURIComponent(p)}`;
+
+          return (
+            <div key={p} style={{ border: "1px solid #ddd", padding: 8 }}>
               <img
                 src={url}
-                style={{ width: "100%", borderRadius: 8 }}
+                style={{ width: "100%", cursor: "pointer" }}
                 onClick={() => window.open(url, "_blank")}
               />
-              <div style={{ marginTop: 8 }}>
-                <Button
-                  fullWidth
-                  onClick={() => {
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `photo_${i + 1}.jpg`;
-                    a.click();
-                  }}
-                >
-                  Download
-                </Button>
+              <div
+                style={{ ...actionBtn("#008060"), marginTop: 6 }}
+                onClick={() => {
+                  console.log("DOWNLOAD SINGLE", p);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `photo_${i + 1}.jpg`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                }}
+              >
+                Download
               </div>
-            </Card>
-          </Layout.Section>
-        );
-      })}
-    </Layout>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
 export default function AppIndex() {
   const { orders } = useLoaderData();
-  const [openPhotos, setOpenPhotos] = useState({});
-  const [openLogs, setOpenLogs] = useState({});
-  const [showHidden, setShowHidden] = useState(false);
 
-  const visibleOrders = orders.filter(o =>
-    showHidden ? true : !o.hidden
-  );
+  useEffect(() => {
+    console.log("CLIENT HYDRATED");
+  }, []);
+
+  const [openPhotos, setOpenPhotos] = useState({});
 
   return (
-    <Page
-      title="Orders"
-      primaryAction={{
-        content: showHidden ? "Hide hidden orders" : "Show hidden orders",
-        onAction: () => setShowHidden(v => !v)
-      }}
-    >
-      <Layout>
-        {visibleOrders.map(order => (
-          <Layout.Section key={order.id}>
-            <Card>
-              <Layout>
-                <Layout.Section>
-                  <Text variant="headingMd">{order.orderName}</Text>
-                  <Text tone="subdued">
-                    {order.customerName || "No name"} · {order.email}
-                  </Text>
-                  <div style={{ marginTop: 8 }}>
-                    <StatusBadge status={order.status} />{" "}
-                    <Text tone="subdued">{order.photosCount} photos</Text>
-                  </div>
-                </Layout.Section>
+    <div style={{ padding: 24 }}>
+      <h2>Orders</h2>
 
-                <Layout.Section secondary>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <Button
-                      onClick={() =>
-                        setOpenPhotos(p => ({
-                          ...p,
-                          [order.id]: !p[order.id]
-                        }))
-                      }
-                    >
-                      View Photos
-                    </Button>
+      {orders.map(order => (
+        <div key={order.id} style={{ border: "1px solid #ccc", padding: 16, marginBottom: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div>
+              <strong>{order.orderName}</strong>
+              <div>{order.email}</div>
+              <StatusBadge status={order.status} />{" "}
+              {order.photosCount} photos
+            </div>
 
-                    <Button
-                      onClick={() =>
-                        setOpenLogs(l => ({
-                          ...l,
-                          [order.id]: !l[order.id]
-                        }))
-                      }
-                    >
-                      See Logs
-                    </Button>
+            <div
+              style={actionBtn("#008060")}
+              onClick={() => {
+                console.log("VIEW PHOTOS CLICKED", order.id);
+                setOpenPhotos(p => ({ ...p, [order.id]: !p[order.id] }));
+              }}
+            >
+              View Photos
+            </div>
+          </div>
 
-                    <Button tone="critical">Hide</Button>
-                  </div>
-                </Layout.Section>
-              </Layout>
-
-              {openPhotos[order.id] && order.uploadKey && (
-                <div style={{ marginTop: 16 }}>
-                  <PhotoGallery uploadKey={order.uploadKey} />
-                </div>
-              )}
-
-              {openLogs[order.id] && (
-                <div style={{ marginTop: 16 }}>
-                  {order.logs.map(log => (
-                    <Text key={log.id}>
-                      <strong>{log.type}</strong>{" "}
-                      {new Date(log.createdAt).toLocaleString()}
-                    </Text>
-                  ))}
-                </div>
-              )}
-            </Card>
-          </Layout.Section>
-        ))}
-      </Layout>
-    </Page>
+          {openPhotos[order.id] && (
+            <PhotoGallery uploadKey={order.uploadKey} />
+          )}
+        </div>
+      ))}
+    </div>
   );
 }
