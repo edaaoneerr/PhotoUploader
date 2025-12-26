@@ -2,7 +2,7 @@ import express from "express";
 import { PrismaClient } from "@prisma/client";
 import fetch from "node-fetch";
 import { createRequestHandler } from "@react-router/express";
-import * as build from "../build/server/index.js";
+import * as build from "../build/server/app.js";
 
 const WORKER_BASE = "https://magnet-upload.kendinehasyazilimci.workers.dev";
 const prisma = new PrismaClient();
