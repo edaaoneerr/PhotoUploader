@@ -1,18 +1,20 @@
-import { Outlet } from "react-router";
-import { useEffect } from "react";
+import { Outlet, Scripts, ScrollRestoration } from "react-router";
+
 
 export default function Root() {
-  useEffect(() => {
-    console.log("🔥 ROOT CLIENT EFFECT");
-  }, []);
-
   return (
-    <div
-      onClick={() => console.log("🔥 ROOT CLICK")}
-      style={{ padding: 40, border: "3px solid red" }}
-    >
-      ROOT WRAPPER
-      <Outlet />
-    </div>
+    <html>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body>
+        <Outlet />
+
+        {/* 👇 BUNLAR YOKSA CLICK YOK */}
+        <ScrollRestoration />
+        <Scripts />
+      </body>
+    </html>
   );
 }

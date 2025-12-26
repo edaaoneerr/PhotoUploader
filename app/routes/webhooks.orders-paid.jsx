@@ -1,4 +1,3 @@
-import { json } from "react-router";
 import { PrismaClient } from "@prisma/client";
 import fetch from "node-fetch";
 
@@ -28,7 +27,11 @@ export async function action({ request }) {
         message: "missing_upload_key"
       }
     });
-    return json({ ok: true });
+
+    return new Response(
+      JSON.stringify({ ok: true }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
   }
 
   await prisma.order.upsert({
@@ -64,7 +67,10 @@ export async function action({ request }) {
   });
 
   if (!verify.ok) {
-    return json({ status: "retrying" });
+    return new Response(
+      JSON.stringify({ status: "retrying" }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
   }
 
   const finalizeRes = await fetch(`${WORKER_BASE}/finalize`, {
@@ -85,5 +91,8 @@ export async function action({ request }) {
     }
   });
 
-  return json({ ok: true });
+  return new Response(
+    JSON.stringify({ ok: true }),
+    { status: 200, headers: { "Content-Type": "application/json" } }
+  );
 }

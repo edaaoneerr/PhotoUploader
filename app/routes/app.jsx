@@ -9,10 +9,7 @@ import enTranslations from "@shopify/polaris/locales/en.json";
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
-
-  return {
-    apiKey: process.env.SHOPIFY_API_KEY || "",
-  };
+  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
 };
 
 export default function App() {
@@ -33,6 +30,4 @@ export function ErrorBoundary() {
   return boundary.error(useRouteError());
 }
 
-export const headers = (headersArgs) => {
-  return boundary.headers(headersArgs);
-};
+export const headers = (args) => boundary.headers(args);
