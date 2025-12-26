@@ -152,14 +152,4 @@ app.post("/webhooks/orders-paid", async (req, res) => {
   res.status(200).send("ok");
 });
 
-/* -------------------- */
-/* React Router */
-app.all(
-  "*",
-  createRequestHandler({
-    build,
-    mode: process.env.NODE_ENV
-  })
-);
-
 app.listen(process.env.PORT || 3000);
