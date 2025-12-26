@@ -1,4 +1,4 @@
-import { useLoaderData } from "react-router";
+import { useLoaderData } from "@shopify/shopify-app-react-router/react";
 import { useEffect, useState } from "react";
 
 // ✅ SERVER FUNCTION IMPORT
