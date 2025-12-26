@@ -47,46 +47,105 @@ function PhotoGallery({ uploadKey }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!uploadKey) return;
+
     fetch(`${WORKER}/list?key=${encodeURIComponent(uploadKey)}`)
       .then(r => r.json())
       .then(d => setPhotos(d.objects || []))
       .finally(() => setLoading(false));
   }, [uploadKey]);
 
-  if (loading) return <div style={{ marginTop: 10 }}>Loading photos…</div>;
+  if (loading) {
+    return <div style={{ marginTop: 12 }}>Loading photos…</div>;
+  }
 
-  if (photos.length === 0)
-    return <div style={{ marginTop: 10 }}>No photos found.</div>;
+  if (photos.length === 0) {
+    return <div style={{ marginTop: 12 }}>No photos found.</div>;
+  }
+
+  const downloadAll = async () => {
+    for (const p of photos) {
+      const url = `${WORKER}/file?object=${encodeURIComponent(p)}`;
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = p.split("/").pop();
+      a.click();
+    }
+  };
 
   return (
-    <div
-      style={{
-        marginTop: 12,
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: 12
-      }}
-    >
-      {photos.map((p, i) => (
-        <img
-          key={i}
-          src={`${WORKER}/file?object=${encodeURIComponent(p)}`}
-          style={{
-            width: "100%",
-            borderRadius: 6,
-            cursor: "pointer"
-          }}
-          onClick={() =>
-            window.open(
-              `${WORKER}/file?object=${encodeURIComponent(p)}`,
-              "_blank"
-            )
-          }
-        />
-      ))}
+    <div style={{ marginTop: 16 }}>
+      <button
+        onClick={downloadAll}
+        style={{
+          marginBottom: 12,
+          padding: "6px 12px",
+          background: "#5C6AC4",
+          color: "white",
+          borderRadius: 6,
+          border: "none",
+          cursor: "pointer"
+        }}
+      >
+        Download All
+      </button>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 12
+        }}
+      >
+        {photos.map((p, i) => {
+          const url = `${WORKER}/file?object=${encodeURIComponent(p)}`;
+
+          return (
+            <div
+              key={p}
+              style={{
+                border: "1px solid #e1e3e5",
+                borderRadius: 8,
+                padding: 8
+              }}
+            >
+              <img
+                src={url}
+                style={{
+                  width: "100%",
+                  borderRadius: 6,
+                  marginBottom: 6
+                }}
+              />
+
+              <button
+                onClick={() => {
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `photo_${i + 1}.jpg`;
+                  a.click();
+                }}
+                style={{
+                  width: "100%",
+                  padding: "6px",
+                  background: "#008060",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  fontSize: 12
+                }}
+              >
+                Download
+              </button>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
+
 
 /* -------------------- */
 /* MAIN PAGE */
@@ -162,31 +221,25 @@ export default function AppIndex() {
 
                 {/* ACTIONS */}
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    onClick={() =>
-                      toggle(openPhotos, setOpenPhotos, order.id)
-                    }
-                  >
-                    View Photos
-                  </button>
+                <button
+                  style={actionBtn("#008060")}
+                  onClick={() => toggle(openPhotos, setOpenPhotos, order.id)}
+                >
+                  View Photos
+                </button>
 
-                  <button
-                    onClick={() =>
-                      toggle(openLogs, setOpenLogs, order.id)
-                    }
-                  >
-                    See Logs
-                  </button>
+                <button
+                  style={actionBtn("#5C6AC4")}
+                  onClick={() => toggle(openLogs, setOpenLogs, order.id)}
+                >
+                  See Logs
+                </button>
 
-                  <button>
-                    Download All
-                  </button>
-
-                  <button>
-                    Hide
-                  </button>
-                </div>
+                <button style={actionBtn("#6D7175")}>
+                  Hide
+                </button>
               </div>
+
 
               {/* PHOTOS */}
               {openPhotos[order.id] && order.uploadKey && (
