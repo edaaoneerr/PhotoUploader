@@ -10,6 +10,11 @@ app.use(express.json());
 
 const EXPECTED_PHOTOS = 9;
 
+app.get("/", (req, res) => {
+  res.redirect("/app");
+});
+
+
 app.post("/webhooks/orders-paid", async (req, res) => {
   const order = req.body;
   const orderId = String(order.id);
